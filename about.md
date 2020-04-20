@@ -17,4 +17,4 @@ Python, Pandas, Numpy SpaCy, Node.js, AWS, Heroku among others. However I always
 You can find more detailed info with my cv or by emailing me.
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+[damonphilipross@gmail.com](mailto:damonphilipross@gmail.com)
