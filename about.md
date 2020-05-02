@@ -23,7 +23,7 @@ I've worked in a range of fields, including finance, energy, and law. Some of th
 However I always make it a priority to find the right tools for the project.
 ### More Information
 
-You can find more detailed info with my cv or by emailing me.
+Hit me up via email for a cv or to get in touch.
 ### Contact me
 
 [damonphilipross@gmail.com](mailto:damonphilipross@gmail.com)
