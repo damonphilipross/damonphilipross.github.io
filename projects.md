@@ -6,7 +6,8 @@ permalink: /projects/
 
 ## University of Canterbury
 
-Created a data pipeline that extracted Pharmaceutical data from XML and PDF labels using machine learning, and advanced scraping methods.
+Created a data pipeline that extracted pharmaceutical data from XML and PDF labels using machine learning, and advanced scraping methods. Performed statistical analysis on the data to find whether pharmaceutical drugs were tested enough prior to
+marketing.
 
 
 ## Ground Breaking Contracting
