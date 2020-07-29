@@ -1,28 +1,26 @@
 ---
 layout: post
-title: You're up and rfasdfning!
+title: Hireroom
 ---
 
-## Shit
+## Hireroom
 
-I first heard about widespread employment issues from a report from NZ's Ministry of Employment stating 17% of the population was having their employment rights infringed upon.
+Product manager for Hireroom a technical recruitment app. Was in charge of prototyping, building and taking Hireroom to market.
 
-After interviewing some employment lawyers, and people who have had employment problems some key problems appeared in the flow of people trying to get help. The process for a person in employment trouble would go
+## Backgrond
 
-- questions were montonous for lawyers
-  - asked lawyers what questions they ask for different legal problems
-  - noted similarities
-  - created a scoring system
-- clients needed to be guided but also needed an online solution (nowhere to get help on specific but common issues, )
-  - big problem with people being able to find legal help quickly
-  - information confusing, dense but commonalities across problems
-  - abstracting questions
-- building an MVP and creating a business model (talking to lawyers and discovering what they did and didn't want, Redesigning the app after talking to clients)
-  - monteizing was going to be referring cases through to lawyers and taking a percentage. The idea was that the questions would reduce lawyer time and uncertainty
-- What went wrong
-  - Idea suffered a marketing problem How do you get this in front of people who may only have this problem once in their lives?
-- A suitable endpoint
-  - shutting down and collaborting with citizen ai
-- Lessons for others
-  - Law suffers from a marketing problem
-  - distrubting law is more about insitutional change then a core produt.
+I was tasked with getting Hireroom, a product of Lancom Technology, off the ground with the goal of it becoming astand-alone company. My day to day involved a mix of product management, marketing and improving the employer andcandidate experience on the Hireroom platform. When I started on Hireroom it was just a small technical test. The goal of Hireroom was to become a profit making company.
+
+## Developent
+
+To start I performed a benchmark study on current technical recruiting solutions and conducted research to get an idea of the landscape and problems that are being addressed. To get the requirements for the features I interviewed people job searching to discover their pain points, as well as the issues companies have during the hiring process. I compiled a list of complaints and created a minimal feature list to launch the product with. Wireframes were built using pen and paper and later sketched out with a ux designer using photoshop. I then wrote the user stories and used an internal press release to provide a strong narrative for each features purpose. I then redeveloped the pricing strategy to be value based to match the rates companies were paying to have positions filled.
+
+## Outcome
+
+With the changes I made above within its first month Hireroom achieved:
+
+* Made $15,500 in its first month half of which was profit.
+
+* Increaesd website visits 178%
+
+* Grew the user base approximate rate of 5% week on week during my time in charge.
