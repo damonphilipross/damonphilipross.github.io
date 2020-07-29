@@ -3,8 +3,6 @@ layout: post
 title: Hireroom
 ---
 
-## Hireroom
-
 Product manager for Hireroom a technical recruitment app. Was in charge of prototyping, building and taking Hireroom to market.
 
 ## Backgrond
