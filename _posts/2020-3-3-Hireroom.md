@@ -5,7 +5,10 @@ title: Hireroom
 
 Product manager for Hireroom a technical recruitment app. Was in charge of prototyping, building and taking Hireroom to market.
 
-## Backgrond
+<img align='right' class='product' src='/images/hireroom.jpg'>
+
+
+## Background
 
 I was tasked with getting Hireroom, a product of Lancom Technology, off the ground with the goal of it becoming astand-alone company. My day to day involved a mix of product management, marketing and improving the employer andcandidate experience on the Hireroom platform. When I started on Hireroom it was just a small technical test. The goal of Hireroom was to become a profit making company.
 

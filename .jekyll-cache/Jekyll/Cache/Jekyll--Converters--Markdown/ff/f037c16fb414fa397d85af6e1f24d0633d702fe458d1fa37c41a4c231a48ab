@@ -1,0 +1,48 @@
+I"i<p>I worked with Citizen A.I. to <a href="'https://www.borrinfoundation.nz/grants/workbot-additional-functionality">incorporate the I.P</a> I developed with <a href="'https://damonphilipross.github.io/fair-work-nz/'">Fair Work New Zealand</a> into their chatbot Workbot. You can check out <a href="'https://workbot.nz/chat'">Workbot</a> here.
+<img align="left" class="product" src="/images/workbot.jpg" /></p>
+
+<h2 id="background">Background</h2>
+
+<p>Workbot went live January 2020 and answers questions about problems at work in plain English. Workbot helps people assess common employment scenarios, and write complaint letters.</p>
+
+<h2 id="development">Development</h2>
+
+<p>To translate all the case asssessment features over from Fair Work NZ I mapped out conversational branches and outcomes. I used Dialogflow to match the user intents to the relevant conversation, and used a Node JS back-end for Webhooks and creating content faster. This was connected to Airtable to speed up creating and altering the chatbot dialog that users recieved. I then created a cache to store the case assessment dialog and refresh from Airtable once a day to keep the API calls to a minimum and increase the speed at which users recieved information.</p>
+
+<p>The document generation feature was implemented within Dialogflow and as a form to give users the options of assisted document creation with Workbot, or quick document generation using a form. This feature was built using a Node JS back-end, relevant intents within Dialogflow, and a simple Bootstrap form on the front-end.</p>
+
+<p>Error handling was done with Sentry.io as middleware and a custom express package to capture, log and report errors. Data validation was implemented using <a href="'https://github.com/sideway/joi'">joi</a>.</p>
+
+<p>Testing all the webhooks would take a considerable  amount of time and grew in complexity so I created an automated testing framework using <a href="'https://jestjs.io/'">Jest</a> and <a href="'https://jestjs.io/'">Supertest</a>. This reduced 10 minutes of testing endpoints to 10 seconds, as well as ensuring its</p>
+
+<p>Once all this was completed to a test audience consisting of some early users, lawyers to vet the legal information and <a href="'https://www.mbie.govt.nz/'">MBIE</a>. It was then iterated based on user feedback and publically launched in March 2020.</p>
+
+<h2 id="outcome">Outcome</h2>
+
+<ul>
+  <li>
+    <p>Creation and testing of case assessment functionality</p>
+  </li>
+  <li>
+    <p>Creating documentation, coding standards and best practices</p>
+  </li>
+  <li>
+    <p>Designing user journeys and turning them into code resulting in functional useful features</p>
+  </li>
+  <li>
+    <p>Developing a REST API and a webhook for document automation to give the chatbot additional functionality</p>
+  </li>
+  <li>
+    <p>Translating Python code into Node.Js and Dialogflow.</p>
+  </li>
+  <li>
+    <p>Created an automated testing suite.</p>
+  </li>
+</ul>
+
+<p>Technologies used:</p>
+
+<ul>
+  <li>Node.js backend, AWS EC2 environment, Mailgun API, Docassemble API, Python, Dialogflow, Ngrok for localdevelopment and testing webhooks, express.js framework</li>
+</ul>
+:ET

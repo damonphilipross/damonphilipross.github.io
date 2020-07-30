@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Law Firm in house Automation
+title: Law firm in-house automation
 ---
 
 I consulted to a Law Firm to develop an in house automation solution.

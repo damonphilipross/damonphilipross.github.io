@@ -110,6 +110,11 @@ img {
   max-width: 100%;
 }
 
+.product {
+  max-width: 25%;
+  padding: 5px;
+}
+
 // Fixes images in popup boxes from Google Translate
 .gmnoprint img {
   max-width: none;
