@@ -18,17 +18,17 @@ Consulted to GBC to bulid a 360 degree camera that could detect humans within 7 
 Consulted to Citizen A.I to bring the funcationality of Fair Work NZ to Workbot - a chatbot for helping employees become
 more aware of their legal rights.
 
-## [Legal tech automation](/Inhouse-automation)
+## [Built legal tech automation](/Inhouse-automation)
 
 I built a legal automation web-app to make a Law Firm's automate and reduce the error rate in making legal documents for clients.
 
 
-##  [Fairwork NZ an employment law web-app](/fair-work-nz)
+## [Founded Fairwork NZ an employment law web-app](/fair-work-nz)
 
 Founder for Fairwork NZ, a web-app that helped employees see if they were getting treated unfairly in the
 workplace and connect them with trusted legal help.
 
-## [Hireroom a technical recruiting platform](/Hireoom)
+## [Launched Hireroom a technical recruiting platform](/Hireoom)
 
 Product manager for Hireroom a technical recruitment app. Was in charge of prototyping, building and taking Hireroom to market.
 
