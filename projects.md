@@ -28,12 +28,12 @@ I built a legal automation web-app to make automate processes within a Law Firm 
 Founded Fairwork NZ, a web-app that helped employees see if they were getting treated unfairly in the
 workplace and connect them with trusted legal help.
 
-### [Launched Hireroom a technical recruiting platform](/Hireoom)
+### [Launched Hireroom a technical recruiting platform](/Hireroom)
 
 Product manager for Hireroom a technical recruitment app. Was in charge of prototyping, building and taking Hireroom to market.
 
 
-Hit me up via email for a cv or to get in touch.
+You can contact me via email for a cv or to get in touch.
 ### Contact me
 
 [damonphilipross@gmail.com](mailto:damonphilipross@gmail.com)
