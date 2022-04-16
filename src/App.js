@@ -1,23 +1,15 @@
-import logo from './logo.svg';
-import './App.css';
+import Nav from "./Components/Nav";
+import Hero from "./Components/Hero";
+import Projects from "./Container/ProjectsContainer";
+// import Footer from "./Components/Footer";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="h-screen bg-gradient-to-b from-[#EAE8FF] to-[#EAE8FF] animate-backg-sm-animation">
+      <Nav />
+      <Hero />
+      <Projects />
+      {/* <Footer /> */}
     </div>
   );
 }
