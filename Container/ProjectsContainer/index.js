@@ -1,26 +1,26 @@
 import Project from "../../Components/Project";
 import { useState } from "react";
 import ModalComponent from "../../Components/ModalComponent";
-import projectJson from "../../Projects/projectsJson";
-const ProjectsContainer = () => {
+
+const ProjectsContainer = ({ posts }) => {
   const [project, setProject] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);
   }
-
   return (
     <div className="bg-[#EAE8FF] pb-5">
-      {projectJson.map((project) => {
+      {posts.map((project, index) => {
         return (
           <div
+            key={index}
             onClick={() => {
               setIsOpen(true);
               setProject(project);
             }}
           >
-            <Project key={project.id} projectJson={project} />
+            <Project projectPosts={project} />
           </div>
         );
       })}

@@ -1,14 +1,18 @@
 // import { useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
+// import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 
 const ModalComponent = ({ isOpen, setIsOpen, project }) => {
+  let refDiv = useRef(null);
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
         className="fixed inset-0 z-10 overflow-y-auto"
+        initialFocus={refDiv}
         onClose={setIsOpen}
       >
         <div className="min-h-screen px-4 text-center">
@@ -54,10 +58,9 @@ const ModalComponent = ({ isOpen, setIsOpen, project }) => {
                     {project.title}
                   </Dialog.Title>
                   <div className="mt-2">
-                    <ReactMarkdown
-                      className="prose lg:prose-xl"
-                      children={project.description}
-                    />
+                    <ReactMarkdown className="prose lg:prose-xl">
+                      {project["content"]}
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>

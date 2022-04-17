@@ -1,4 +1,4 @@
-const projectJson = [
+export const projectJson = [
   {
     id: 1,
     title: "Fair Work NZ",
@@ -111,4 +111,4 @@ With the changes I made above within its first month Hireroom achieved:
   },
 ];
 
-export default projectJson;
+// export default projectJson;

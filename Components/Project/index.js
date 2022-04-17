@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 
-const Project = ({ projectJson }) => {
+const Project = ({ projectPosts }) => {
   const trimDescription = (description) => {
     if (description.length > 200) {
       return description.substring(0, 200) + "...";
@@ -16,15 +16,20 @@ const Project = ({ projectJson }) => {
         alt="project"
       />)} */}
       <div className="flex flex-col p-6">
-        <h1 className="text-[#2D3142] p-2 font-bold">{projectJson.title}</h1>
+        <h1 className="text-[#2D3142] p-2 font-bold">
+          {projectPosts["title"]}
+        </h1>
         <p className="text-[#2D3142] p-2">
-          {trimDescription(projectJson.description)}
+          {trimDescription(projectPosts["content"])}
         </p>
         <div className="flex flex-row flex-wrap">
-          {projectJson.tech &&
-            projectJson.tech.map((tech, index) => {
+          {projectPosts["tech"] &&
+            projectPosts["tech"].map((tech, index) => {
               return (
-                <div key={index} className="border-2 rounded-md border-[#B0D7FF] m-2  hover:scale-105 ease-in-out duration-300">
+                <div
+                  key={index}
+                  className="border-2 rounded-md border-[#B0D7FF] m-2  hover:scale-105 ease-in-out duration-300"
+                >
                   <p className="text-[#2D3142] px-1 py-1">{tech}</p>
                 </div>
               );
