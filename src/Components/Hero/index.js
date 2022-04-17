@@ -9,7 +9,7 @@ const Hero = () => {
         and creative art pieces.
       </h2>
       <div className="flex flex-col justify-center text-center text-2xl py-10">
-        <h1 className="">Projects</h1>
+        <h1 id="#Projects" className="">Projects</h1>
         <span className="bg-[#2D3142] rounded-md py-[2px] px-14 m-auto"></span>
       </div>
     </div>
