@@ -17,6 +17,7 @@ const ProjectsContainer = ({ posts }) => {
             key={index}
             onClick={() => {
               setIsOpen(true);
+              console.log(`isopen ${isOpen}`)
               setProject(project);
             }}
           >

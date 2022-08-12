@@ -12,9 +12,11 @@ const ModalComponent = ({ isOpen, setIsOpen, project }) => {
       <Dialog
         as="div"
         className="fixed inset-0 z-10 overflow-y-auto"
-        initialFocus={refDiv}
+        initialFocus={refDiv} 
         onClose={setIsOpen}
       >
+              <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
         <div className="min-h-screen px-4 text-center">
           <Transition.Child
             as={Fragment}

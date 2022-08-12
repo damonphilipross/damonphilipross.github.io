@@ -27,11 +27,11 @@ To translate all the case asssessment features over from Fair Work NZ I mapped o
 
 The document generation feature was implemented within Dialogflow and as a form to give users the options of assisted document creation with Workbot, or quick document generation using a form. This feature was built using a Node JS back-end, relevant intents within Dialogflow, and a simple Bootstrap form on the front-end.
 
-Error handling was done with Sentry.io as middleware and a custom express package to capture, log and report errors. Data validation was implemented using [joi]('https://github.com/sideway/joi').
+Error handling was done with Sentry.io as middleware and a custom express package to capture, log and report errors. Data validation was implemented using joi.
 
-Testing all the webhooks would take a considerable amount of time and grew in complexity so I created an automated testing framework using [Jest]('https://jestjs.io/') and [Supertest]('https://jestjs.io/'). This reduced 10 minutes of testing endpoints to 10 seconds, as well as ensuring its
+Testing all the webhooks would take a considerable amount of time and grew in complexity so I created an automated testing framework using Jest and Supertest. This reduced 10 minutes of testing endpoints to 10 seconds, as well as ensuring its
 
-Once all this was completed to a test audience consisting of some early users, lawyers to vet the legal information and [MBIE]('https://www.mbie.govt.nz/'). It was then iterated based on user feedback and publically launched in March 2020.
+Once all this was completed to a test audience consisting of some early users, lawyers to vet the legal information and MBIE. It was then iterated based on user feedback and publically launched in March 2020.
 
 ## Outcome
 
