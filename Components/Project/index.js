@@ -1,5 +1,3 @@
-import ReactMarkdown from "react-markdown";
-
 const Project = ({ projectPosts }) => {
   const trimDescription = (description) => {
     if (description.length > 200) {

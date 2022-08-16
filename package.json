@@ -20,10 +20,10 @@
     "typescript": ">=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.4",
+    "autoprefixer": "^10.4.8",
     "eslint": "8.13.0",
     "eslint-config-next": "12.1.5",
-    "postcss": "^8.4.12",
-    "tailwindcss": "^3.0.24"
+    "postcss": "^8.4.16",
+    "tailwindcss": "^3.1.8"
   }
 }

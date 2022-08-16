@@ -7,6 +7,7 @@ import Footer from "../Components/Footer";
 import ProjectsContainer from "../Container/ProjectsContainer";
 
 import { getSortedPostsData } from "../lib/posts";
+import PhotoAnimation from "../Components/Photo";
 
 export async function getStaticProps() {
   const posts = getSortedPostsData();
@@ -22,9 +23,13 @@ export default function Home({ posts }) {
     <div className="bg-gradient-to-b from-[#EAE8FF] to-[#EAE8FF] animate-backg-sm-animation">
       <Head>
         <title>Damon Ross</title>
-        <meta name="Homepage for Damon Ross" content="Full Stack Developer and general maker of things" />
+        <meta
+          name="Homepage for Damon Ross"
+          content="Full Stack Developer and general maker of things"
+        />
         {/* <link rel="icon" href="/favicon.ico" /> */}
       </Head>
+      {/* <PhotoAnimation /> */}
       <Hero />
       <ProjectsContainer posts={posts} />
       <Footer />
