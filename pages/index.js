@@ -1,8 +1,5 @@
 import Head from "next/head";
-import Image from "next/image";
-import Nav from "../Components/Nav";
 import Hero from "../Components/Hero";
-import Project from "../Components/Project";
 import Footer from "../Components/Footer";
 import ProjectsContainer from "../Container/ProjectsContainer";
 
@@ -29,8 +26,8 @@ export default function Home({ posts }) {
         />
         {/* <link rel="icon" href="/favicon.ico" /> */}
       </Head>
-      {/* <PhotoAnimation /> */}
       <Hero />
+      <PhotoAnimation />
       <ProjectsContainer posts={posts} />
       <Footer />
     </div>

@@ -17,11 +17,11 @@ tech: [
 
 I worked with Citizen A.I. to incorporate the I.P I developed with Fair Work New Zealand into their chatbot Workbot. You can check out Workbot here.
 
-## Background
+### Background
 
 Workbot went live January 2020 and answers questions about problems at work in plain English. Workbot helps people assess common employment scenarios, and write complaint letters.
 
-## Development
+### Development
 
 To translate all the case asssessment features over from Fair Work NZ I mapped out conversational branches and outcomes. I used Dialogflow to match the user intents to the relevant conversation, and used a Node JS back-end for Webhooks and creating content faster. This was connected to Airtable to speed up creating and altering the chatbot dialog that users recieved. I then created a cache to store the case assessment dialog and refresh from Airtable once a day to keep the API calls to a minimum and increase the speed at which users recieved information.
 
@@ -33,7 +33,7 @@ Testing all the webhooks would take a considerable amount of time and grew in co
 
 Once all this was completed to a test audience consisting of some early users, lawyers to vet the legal information and MBIE. It was then iterated based on user feedback and publically launched in March 2020.
 
-## Outcome
+### Outcome
 
 - Creation and testing of case assessment functionality
 

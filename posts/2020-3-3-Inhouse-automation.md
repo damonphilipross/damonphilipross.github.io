@@ -6,15 +6,15 @@ date: '2020-1-3'
 
 I consulted to a Law Firm to develop an in house automation solution.
 
-## Background
+### Background
 
 I consulted to a Law Firm that wanted to automate their creation of legal documents so they could reduce error rates within documents and bring new hires up to speed faster.
 
-## Development
+### Development
 
 To find the best solution for automation I shadowed two employees on their document creation process. I then abstracted commonalities across documents to find where the similarities were and what could be gathered from their clients once and populated across multiple documents. This gave me an initial feature-set to build. We then iterated the prototype to meet the client requirements for UX, and functionality.
 
-## Outcome
+### Outcome
 
 * Decreasing document creation time from 4 hours to 30 minutes.
 

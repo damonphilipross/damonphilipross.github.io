@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const Project = ({ projectPosts }) => {
   const trimDescription = (description) => {
     if (description.length > 200) {
@@ -7,12 +9,7 @@ const Project = ({ projectPosts }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row mb-16 mx-14 rounded-xl bg-white shadow-slate-400 shadow-xl hover:scale-105 ease-in-out duration-300 cursor-pointer">
-      {/* {projectJson.image (<img
-        className="rounded-l-xl opacity-95"
-        src={projectJson.image}
-        alt="project"
-      />)} */}
+    <div className="flex flex-col flex-start mb-16 mx-14 rounded-xl bg-white shadow-slate-400 shadow-xl hover:scale-105 ease-in-out duration-300 cursor-pointer"> 
       <div className="flex flex-col p-6">
         <h1 className="text-[#2D3142] p-2 font-bold">
           {projectPosts["title"]}

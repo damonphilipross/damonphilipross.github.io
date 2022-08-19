@@ -7,17 +7,17 @@ tech: ["Python", "Docassemble", "Flask", "Docker", "Mailgun", "AWS"]
 
 I was the founder of Fair Work NZ, a web-app to provide legal access to Employees.
 
-## Background
+### Background
 
 I created Fair Work NZ (FWNZ) to address the issue of Employee exploitation within New Zealand. Approximately 17% of the workforce in New Zealand is going without their basic rights as Employees. Lawyers and Community Law centers struggle to provide legal advice to Employees who normally don't have the availibility and finances to get legal advice for their time critical employment problems. Lawyers also tend to be wary of taking on cases that haven't been vetted.
 
-## Development
+### Development
 
 For the development of FWNZ I consulted with people seeking legal help as well as employment Lawyers to understand the problems they were facing. I also got an understanding of the employment law eco system and where people went when they needed legal help, and how Lawyers got their cases. This gave me an understanding of the first feature set that FWNZ would have to launch with. To develop quickly I used an open source flask app to build the prototype.
 
 My launch strategy was targeted towards appealing to consulates as they dealt with an overflow of employment cases, and non profit organizations that did community outreach for people with employment problems. I then partnered with 4 law firms that would receive cases after they were vetted by the web-app.
 
-## Outcome
+### Outcome
 
 Outcomes and achievements I had during FWNZ was:
 

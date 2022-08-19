@@ -7,7 +7,7 @@ tech: ["Python", "Docassemble", "Flask", "Docker", "Mailgun", "AWS", 'JS']
 
 For a Law Firm in Christchurch  I implemented an internal Web-App tool to make their legal processes more efficient.
 
-## Achievements
+### Achievements
 
 * Prototyping, designing, and building a Web-app from user requirements.
 * Reducing time spent writing documents from 3 hours to 30 minutes using the Web-app through iterations from user feedback and redesigns. 
