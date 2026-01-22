@@ -1,0 +1,21 @@
+# Site settings
+title: Damon Ross
+description: Thoughts on tech, product, and building things.
+author: Damon Ross
+
+# Social links
+github_username: damonphilipross
+twitter_url: https://x.com/damindestress
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: /:year/:month/:day/:title/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
