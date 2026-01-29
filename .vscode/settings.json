@@ -1,0 +1,17 @@
+{
+  "cSpell.enabled": true,
+  "cSpell.enabledLanguageIds": ["markdown", "plaintext"],
+  "cSpell.ignorePaths": [],
+  "languagetool.enabled": true,
+  "languagetool.language": "en-AU",
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
+    },
+    "editor.acceptSuggestionOnEnter": "on"
+  },
+  "frontMatter.framework.id": "jekyll"
+}
