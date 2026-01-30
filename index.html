@@ -1,21 +1,66 @@
----
-layout: default
-title: Blog
----
-<ul class="post-list">
-  {% for post in site.posts %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Blog | Damon Ross
+    </title>
+    <meta
+      name="description"
+      content="Thoughts on tech, product, and building things."
+    />
+    <link
+      rel="stylesheet"
+      href="/assets/css/style.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a href="/" class="site-title"
+          >Damon Ross</a
+        >
+        <nav>
+          <a href="/">Blog</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container"><ul class="post-list">
+  
   <li>
-    <a href="{{ post.url | relative_url }}">
-      <h2>{{ post.title }}</h2>
-      <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y" }}</time>
-      {% if post.excerpt %}
-      <p>{{ post.excerpt | strip_html | truncate: 160 }}</p>
-      {% endif %}
+    <a href="/2026/01/28/building-a-search-engine-for-the-asx/">
+      <h2>Building a search engine for the ASX</h2>
+      <time datetime="2026-01-28T00:00:00+13:00">January 28, 2026</time>
+      
+      <p>This post-mortem details the technical architecture and product evolution of an unstructured data search engine I built for the Australian Securities Exchang...</p>
+      
     </a>
   </li>
-  {% endfor %}
+  
 </ul>
 
-{% if site.posts.size == 0 %}
-<p>No posts yet. Add markdown files to the <code>_posts</code> folder to get started.</p>
-{% endif %}
+
+</main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="social-links">
+          <a
+            href="https://github.com/damonphilipross"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+          <a href="https://x.com/damindestress" target="_blank" rel="noopener"
+            >Twitter</a
+          >
+          <span class="email-display">damonross@proton.me</span>
+        </div>
+        <p>&copy; 2026 Damon Ross</p>
+      </div>
+    </footer>
+  </body>
+</html>
