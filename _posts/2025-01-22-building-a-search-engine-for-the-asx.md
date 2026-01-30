@@ -4,17 +4,30 @@ title: Building a search engine for the ASX
 date: 2026-01-28
 ---
 
+This post-mortem details the technical architecture and product evolution of an unstructured data search engine I built for the Australian Securities Exchange (ASX).
+
 ## Problem Discovery
 
-The inspiration for this project came from a friend telling me of a stock that he claimed was a prime takeover target. Like many "sure things" I've come across I proceeded to check the latest announcements, financials and other associated information. The company itself seemed some what mediocre but had made an announcement that they were conducting a "Strategic Review". I got particularly interested in this and wanted to explore more but was struck by how I couldn't easily search through their announcement history to find every time they mentioned they were doing a strategic review. It also occurred to me that I couldn't do this for the entirety of the stock exchange and am probably missing the story.
+The inspiration for this project came from a friend telling me of a stock that he claimed was a prime takeover target. Like many "sure things" I've come across I proceeded to check the latest announcements, financials and other associated information. The company itself seemed somewhat mediocre, one specific filing stood out: they had recently initiated a **"Strategic Review."**
+
+I wanted to cross-check this trigger against their history, but there was a complete lack of tools to perform granular text searches across historical filings and across companies. It occurred to me that I couldn't do this for the entire exchange either. If I could aggregate mentions of "strategic reviews" or "asset divestments" across the ASX, I could identify sector-wide trends and health signals that are usually buried in unstructured PDF text.
+
+After all if I could know the aggregate of strategic reviews and their outcomes would that not tell me something even just a part of the puzzle about the current state of a company, a sector and the health of the ASX at large.
 
 ## Exploration
 
-Years prior to this I had been doing a discovery project for a professor to extract information from complex drug trials to build a regression for understanding whether or not a drug had likelihood in succeeding or not. Anyone who has built a parser for PDF's understands the pain of endless edge cases one must navigate when parsing text or information from them.
+Years prior to this I had been doing an ETL project for a professor to extract information from complex drug trials to build a regression model for understanding whether or not a drug had likelihood in succeeding or not. From that experience I remember vividly that
 
-So the first part of this project I went about grabbing 50 or so announcement PDF's from different categories to understand parsability.
-Many of them contained complex photos, varied widely in length, some were photos, some standardized and many just a random mess of text. The good thing about this however is that the problem here was quite solvable as the edge cases are known and reasonable.
-Standard text and images you can use [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/about.html#performance). For scanned PDF's you can use OCR and for hybrid versions you can use a combination of the two. Detecting all these edge cases was reasonably simple as well. An example below (not the actual source code I should add).
+1. Parsing PDF's is truly nightmarish
+2. There is an absolutely incredible wealth of data locked away in them if you can figure out parsing
+
+Anyone who has built a parser for PDF's understands the pain of endless edge cases one must navigate when parsing text or information from them.
+
+To map out the problem space for the ASX, I sampled 50 announcements across various categories. The variation was striking from standardized digital text, high-resolution infographics, to low-quality rasterized scans.
+
+### The Extraction Pipeline
+
+I implemented a hybrid extraction strategy to handle these varied formats. For digital text layers, I used `PyMuPDF` due to its high-performance C backend. For scanned documents, I implemented an OCR fallback using `Tesseract` (here is a simplified version below).
 
 ```python
 import fitz  # PyMuPDF
@@ -26,10 +39,10 @@ def extract_text(pdf_path):
     doc = fitz.open(pdf_path)
     text = ""
     for page in doc:
-        # Try digital text extraction first
+        # Attempt high-fidelity digital extraction
         page_text = page.get_text()
 
-        # If no text is found, fallback to OCR
+        # Fallback to OCR for rasterized/scanned content
         if not page_text.strip():
             pix = page.get_pixmap()
             img = Image.open(io.BytesIO(pix.tobytes()))
@@ -39,94 +52,107 @@ def extract_text(pdf_path):
     return text
 ```
 
-After parsing I looked at the length and variation of these documents. The standard deviation between them was vast some were simple pages some were 100s of pages long. Some contained dense information with those 100s of pages, others were just huge amounts of transaction detail noise.
+This strategy worked well for the most part however there was an around a ~5% error rate. Some documents would parse with excessive spacing, resulting in text like T a x P a i d . . . . . 5 0 0 or L i a b i l i t i e s. This creates a nightmare for search, as Meilisearch indexes each character individually rather than the full word—effectively breaking its inverted index.
 
-It was clear that I would need to filter out some announcement types while others would need to be completely retained due to the density of useful information (annual reports in particular contain granular detail on every other page).
+### The Search Architecture
 
-Filtering is simple just a simple check on announcement type.
+The next hurdle was Information Retrieval (IR). While a linear search (`grep`) is trivial for a single 100-page document, it is computationally infeasible for a low-latency UI scanning a corpus of 200,000+ files. To achieve sub-second results, I needed a proper **inverted index**.
 
-A more difficult challenge is figuring out how to perform efficient search. Exact text search (linear) over an entire 100 page document is slow with a time complexity of O(n). Not great when the goal is store years of data and hundreds of thousands of announcements each varying in length up 100's of pages long.
+I evaluated several backends:
 
-My first step to figuring out how to solve this was in trying different solutions. The plan of attack was to try a variety of off the shelf tools such as ElasticSearch, Meilisearch, Algolia, and PG text search. I wanted to control over the hosting so Algolia was easily disqualified.
+- **ElasticSearch:** Industry standard, but the operational overhead and JVM memory footprint were excessive for an MVP.
+- **PostgreSQL (FTS):** Attractive for its relational consistency, but I wanted more control over typo-tolerance and ranking out of the box.
+- **Meilisearch:** I ultimately chose Meilisearch for its optimized prefix-search and ease of deployment.
 
-ElasticSearch while fit the criteria of being able to do relevant performant search over millions of pages of documents suffered due to the complexity of getting it going.
+Meilisearch worked great out of the box but hit a scaling bottleneck when it came to large documents (annual reports) which created significant indexing lag and bloated the search results. Returning a 200-page document for a single keyword match is a poor user experience after all.
 
-PG text search was probably my preferred option due to how well it would scale while being cost effective but again was going to be a drag on development time and the primary goal was to build this out, scale to around 2 years of data to prove the concept and then look into scalability options if the feedback was positive.
+To solve this, I implemented a **semantic chunking strategy**. By breaking documents into overlapping text segments linked to a master Document ID, I could return the specific page or paragraph relevant to the user, significantly increasing the "signal" in the search results.
 
-Meilisearch was very easy to get started and lovely to work with search was very fast and efficient however still not as fast as it could be. The primary bottleneck I was facing was from very large documents anything that had over 50 pages. An additional issue was in the number of documents that could be serviced. I started hitting considerable lag on uploading ~5 company histories (all reports and information dating back to the start of the company).
+### Overcoming Character Positioning Artifacts
 
-To solve this problem I had to chunk the documents. I played around with a couple options chunking by paragraph worked great but was inconsistent due to formatting not persisting after the PDF had been parsed so some documents would be missed and entirely indexed and not chunked. Not good!
+One "brilliant" engineering challenge surfaced during indexing: non-uniform kerning. Some PDFs store character coordinates rather than logical strings, resulting in parsed text like `T a x  P a i d . . . 5 0 0`.
 
-Ultimately I opted for a simple chunking strategy after cleaning the data building out a max chunk size and storing this linked by a document ID.
+Since this breaks a token-based inverted index, I had to decide between a heavy dictionary-based re-stitching heuristic or moving forward with the 95% of documents that parsed correctly. I opted for the latter to maintain ETL velocity for the beta, but it highlighted the inherent fragility of PDF-based data pipelines.
 
-An additional issue I came across with parsing was the lack of uniformity. Some documents would parse with excessive spacing, resulting in text like T a x P a i d . . . . . 5 0 0 or L i a b i l i t i e s. This creates a nightmare for search, as Meilisearch indexes each character individually rather than the full word—effectively breaking its inverted index.
+There was a great temptation (and many attempts) to solve this problem but after several fruitless hours I began to realize how this won't be the blocker that answers whether the market fundamentally wants this product or not.
 
-Navigating these edge cases was tough because they occurred randomly. A simple join() won't work, and identifying where to re-stitch words would require an unholy brute-force dictionary search that would grind the parsing pipeline to a halt. Given this happened in less than ~5% of documents, I decided it wasn't a blocker for the MVP and kicked the issue down the road.
+## Architecture & Infrastructure
 
-## Architecture
+To keep costs low I decoupled the heavy lifting from the user-facing application.
 
-To keep costs low I ran the core ETL pipeline on an old T440P Thinkpad I had lying around it had 16GB's of ram and was very efficient. This handled my entire processing pipeline of grabbing the announcements, parsing, creating relevant metadata and then uploading to the the Meilisearch instance.
+The core ETL pipeline ran on a dedicated local worker node: an old T440P Thinkpad with 16GB of RAM. This machine handled the CPU-intensive tasks: polling the ASX feeds, normalizing text, and enriching metadata. This allowed me to keep the cloud infrastructure lean. While there was some consideration of whether I should have more redundancy built in say if my power went out, internet turned off or someone simply closed the lid for the purposes of keeping this a rough and ready MVP I figured I could get away with it.
 
-![My Thinkpad Setup]({{ '/assets/images/profile.jpg' | relative_url }})
-_Note: You can add photos or GIFs using the `![Alt Text]({{ '/path/to/image.jpg' | relative_url }})` syntax._
+The frontend was a Next.js application deployed on Vercel, communicating with a Meilisearch instance on a DigitalOcean VPS.
 
-For a frontend I didn't need anything overly fancy to test this out some simple NextJS frontend on vercel would do the trick as none of the queries should come close to breaking free tier. There was a temptation to host everything together on Coolify so I could decrease latency however given I wasn't sure of the value of the project I made note of possible other architectures that would work and kicked them down the road for if scale would be warranted.
+## Launch and Query Optimization
 
-## Launch
+The beta launch had autocomplete, 1 year of data and a few companies with a full announcement history indexed, and some minimal filtering functionality. I started on a 4GB Digital Ocean VPS at first but I moved off that after trialing with a few users and finding the search slow and dangerously maxing out the CPU usage on queries.
 
-For a beta launch I had autocomplete, 1 year of data and a few companies with a full announcement history indexed, and some minimal filtering functionality. I started on a 4GB Digital Ocean VPS at first but I moved off that after trialing with a few users and finding the search slow and dangerously maxing out the CPU usage on queries.
+![ASX Search Engine Demo](/assets/images/demo.gif)
 
-Getting information on whether a user likes something or not can be a lot of signal. I indexed a new set of announcements roughly every 5ish minutes. If there was a sudden user load that could pretty easily overwhelm my little 4GB server. So while autocomplete looks cool I wasn't really convinced it was providing much value especially after a couple user interviews the main response is "its cool". I turned it off, no one complained and usage stayed the same. With autocomplete off it was much less likely to overwhelm the server. Just to be safe I figured I'd run the whole operation on an 8GB VPS just to be on the safe side. Meiilisearch can handle 1000 concurrent requests as well so it would be much less likely to hit this without autocomplete than with it. The real experience would be more in delivering high quality search results as opposed to having a variety of menu items available.
+The Meilisearch instance was initially deployed on a 4GB RAM VPS but it was fairly evident it wouldn't be able to cope with the writes from indexing new announcements every 5 minutes or so and autocomplete just hammering the server.
 
-## Approximating the pain point.
+I identified **query amplification** as the primary culprit. With autocomplete enabled, every keystroke triggered a new search request. While it provided a slick UI I wasn't really convinced it was providing much value while it was taxing the CPU unnecessarily.
 
-Many software engineers that have made exactly what they want will know the satisfaction of designing the exact tool you wanted for your needs. If they have taken the next level of the punt and tried to monetize it they will know the subsequent pain of finding out that your pain point was in fact your own, and perhaps not quite as strong a pain point as you thought it was.
+After a few user interviews the main responses were some variations of "its cool but doesn't help much for finding things" so I remained unconvinced of its value. More users seemed to actually rely on the "search-as-you-type" suggestions for deep research, I disabled autocomplete. This immediately stabilized the CPU load and allowed me to focus on the quality of the primary search results.
 
-There was an initial magic of being able to pull up very strategic review as I had initially desired. But as the french exclaim Pourquoi? for what?
+I eventually upscaled to an 8GB VPS to give the inverted index more breathing room in memory, ensuring that even concurrent complex queries remained performant.
 
-I found that I was met with albeit the text I desired and a view of who was conducting reviews and when. I still had much research to do across this idea.
+The experience would be more about delivering high-quality, relevant results rather than having a rapidly changing list of menu items available on every keystroke.
 
-Unsatisfied I scoped out building an alerting system to add in. This would be a pretty minimal add as while I parse I can add a simple check to see if an announcement has included a particular search term, if so it would send an email with a link to the alert. This of course would scale poorly as you quickly will have an O(n) as a best case and significantly worse for every search term a user wants to have so I put a limit on it 2 search terms per user. I also hashed the searched terms with the user ID's as the value (reverse indexed?? CHECK BEFORE PUBLISH) to cut down on processing the same search term. All this was handled on the Thinkpad which already was processing concurrently so it felt like there was room to move in terms of load.
+## Approximating the Pain Point
 
-I noted that launch went well I had around 150 users typing things out I kept it as a free tier and then offered a paid service for greater search (2 years of documents as opposed to 1 month) and more alerts available for $49 a month. Upon further consideration I also decided to lock down the free tier as I wanted to see where the value in this product would be. I capped search at 10 searches a month and informed existing alert users that the free trial was over and I would be shifting alerts to a paid feature which I started at $10 a month to see if anyone would pay.
+Many engineers who have built exactly the tool they wanted know the satisfaction of designing for their own needs. But if you've taken the next step and tried to monetize it, you know the subsequent pain of finding out that your "itch" was yours alone.
 
-After putting in the paywalls usage didn't really change most users would type a handful of things in think "cool" and then go do something else. Browsing through announcements after all was not their workflow so fair enough. A handful of paying users emerged but there was no real consistency between what they wanted. Some bought for alerting, some bought to use search to find a very specific thing. Most people I talked to had a need about once every other month to do deep research (Lawyers, IB, Research Houses, Random Investors).
+There was an initial magic to pulling up every "Strategic Review" as I had imagined. But as the French exclaim: _Pourquoi?_ For what? While I had the text and a view of who was conducting reviews, I still had a massive amount of manual research left to do. The search was the start of the thread, not the end of the needle.
 
-This was the first sign that
+### The Alerting Engine
 
-1. I definitely did not have PMF. But I was in the proximity of a problem.
-2. Whatever problem that existed may be disparate so a solution may not be generalized across enough of the user base or frequent enough that it actually matters for users.
+Unsatisfied, I scoped out an alerting system. This was a minimal technical addition: during the parsing stage on the Thinkpad, I added a check to see if an announcement matched specific keywords.
 
-So here in lies the issue. I made a product to solve a problem I thought I had. In reality I had a mild curiousity that and didn't want "Deep" information I wanted shallow information and context around the information.
+To keep this efficient, I avoided a naive scan where every document is checked against every search term for every user. Instead, I maintained an **inverted index** of active alert terms. During the ingestion pipeline, a document is tokenized and checked once against this global list of "wanted" terms. If a hit is found, the system retrieves the associated User IDs and dispatches a notification.
+
+![ASX Search Engine Demo](/assets/images/alert.png)
+
+I capped the free tier at two alerts and introduced a $10/month paid tier to see if anyone would bite.
+
+## The PMF Reality Check
+
+The launch had gone well but I still was unsure what users were finding most valuable. I decided to paywall features and introduce usage limits.
+
+After putting up the paywalls, usage didn't really change. Most users would type a handful of queries, think "cool," and then move on. Browsing through announcements simply wasn't their daily workflow.
+
+A handful of paying users emerged. Lawyers, IB analysts, and dedicated researchers but there was no real consistency in what they wanted. Some bought for the alerting; others just needed to find one specific historical document. Most people I talked to only needed to perform this kind of deep research once every few months. This was the first sign that:
+
+1. I didn't have Product-Market Fit (PMF), but I was in the proximity of a problem.
+2. The problem was disparate. A generalized solution didn't provide enough frequent value to justify a broad subscription model.
+
+Herein lies the issue: I built a product to solve a problem I _thought_ I had. In reality, I had a curiosity. I didn't want "deep" information, I wanted shallow context around signals.
 
 ## Lessons and next steps
 
-A note here is more of a product breakdown than anything technical
+I tried a few more "engineer-brain" features. I pushed the filtering to the extreme, allowing granular searches like _"Show me every African Gold miner with a market cap between $30M and $50M mentioning 'Tariffs' that has had recent price volatility."_
 
-After building this I tried a couple more features I was interested in. I increased filtering dramatically to allow very granular searches such as if I look up "Trump Tariffs" to see who is mentioning that in their announcements I want to filter in on all African Gold miners between $30M and $50M that have had recent price volatility (I am quite pleased with the way I did this and think there might be some alpha in it so I will keep it private or on request for now but DM me if you're interested to kick ideas around).
+![Fine Grain Filter](/assets/images/search_demo.gif)
 
-I also built in price reactions to announcements so you could see how much an announcement moved the market.
+I also built in price reactions so you could see exactly how much an announcement moved the market in real-time. But again, these launches saw small upticks in usage followed by stagnation. The engine was powerful the there were many interesting threads to pull on however there was no workflow capture.
 
-I launched this to the user base via an email update. There was a little uptick of usage but nothing major. on each of these launches so again neither really were understood or built around a pain point.
+And so like all classic products that gain traction but stagnant after a handful of paying users I decided to do what everyone tells you to do in the beginning and conduct some thorough customer research and find what end users actual workflows, pain points and existing solutions are.
 
-There is a particular frustration of having a project that has a little bit of traction initially but stagnates. I decided the best course of action here was to conduct user interviews (yes I know this should have been my first step).
+I interviewed hedge fund managers and IR professionals. They all said the same thing: they use Bloomberg or CapIQ for the initial filter, but they always default to the source PDF. Why? Because companies bury the "truth" in the fine print or use accounting sleight-of-hand that only a fine-tooth comb can catch.
 
-I interviewed several hedge fund managers, investor relations people, and other "players" in the game whose bread and butter (or so I thought) was navigating through ASX announcements
-
-They outlined existing solutions such as Bloomberg Terminals, CapIQ, and various other ways to get up to date information. One of the most interesting findings from these chats is the existing high value tools were used as an initial filter but the data was out of date or just incorrect.
-
-Analysts would always default to the actual source document as they it was always going to be the source of truth (or lies as I would find many companies bury or do sleight of hands with their accounting that can only really be captured by a very fine tooth comb through the fine print).
+An interesting insight after the customer interviews was very few even relied on Bloomberg or Cap IQ as the data was often out of date or just plain wrong. Despite the solution costing some 50k a year unless you were dealing with major US companies often you had to dive into the annual reports yourself.
 
 The value add was not in replacing this workflow because the need for it to be completely accurate and the ability to look up the information was never really an issue as you were essentially looking for a handful of announcement types.
 
 The real issue lay in either idea generation which was where the "sifting" was before committing to a deep dive. The deep dive is very laborious so you obviously don't want to do it for every company given how much information can be hidden in fine print or other weird areas of a document or just calling up investor relations and interrogating them.
 
-Many of the investors I met had a very particular workflow for these deep dives and the best tools in the world never would replace just living within the annual/quarterly or half year reports.
+### Where that leaves the project
 
-So where did that leave the project?
+Ultimately, I ran out of time and money. While the search engine for the ASX didn't set the world on fire, many parts of it are serving as the foundation for my next project. And as always with projects like this you do learn quite a lot.
 
-Ultimately I had run out of time and while there are many parts of the project I am using for a new project(stay tuned) the world as I saw it didn't have much use for a search engine for the ASX.
+I recently experimented with an **MCP server** that gives LLMs access to this search engine and price/vol data—which involves some interesting technical trade-offs regarding context windows and data density that I’ll save for a separate post.
 
-If you'd like to follow along with my new project in this space I will be writing a methodology of it as I create it probably here. I am writing about it on [newsletter.capitalsignal.io](https://newsletter.capitalsignal.io/) however this is more the "output" of the project. The core technical parts and learning I will be putting probably on this blog, or posting about it on my [twitter](https://x.com/damindestress) or [linkedin](https://www.linkedin.com/in/damon-ross-237b7b155/).
+If you'd like to follow along, I'll be writing about the core technical learnings of my new project here (probably), or you can find me on [Twitter](https://x.com/damindestress) or [LinkedIn](https://www.linkedin.com/in/damon-ross-237b7b155/).
 
-If you enjoyed this feel free to reach out I'm currently open to contracting roles, if you do in fact think the world needs this then also reach out it was a considerable amount of work to get it to where it was
+If you enjoyed this or have ideas for the space, reach out. I'm currently open to contracting roles. And if you’re one of the few who thinks the world _does_ need this search engine, definitely DM me I've already done the hard part.
