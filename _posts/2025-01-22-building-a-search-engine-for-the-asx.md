@@ -65,7 +65,12 @@ Navigating these edge cases was tough because they occurred randomly. A simple j
 
 ## Architecture
 
-To keep costs low I ran the core ETL pipeline on an old T440P Thinkpad I had lying around it had 16GB's of ram and was very efficient. This handled my entire processing pipeline of grabbing the announcements, parsing, creating relevant metadata and then uploading to the the Meilisearch instance. For a frontend I didn't need anything overly fancy to test this out some simple NextJS frontend on vercel would do the trick as none of the queries should come close to breaking free tier. There was a temptation to host everything together on Coolify so I could decrease latency however given I wasn't sure of the value of the project I made note of possible other architectures that would work and kicked them down the road for if scale would be warranted.
+To keep costs low I ran the core ETL pipeline on an old T440P Thinkpad I had lying around it had 16GB's of ram and was very efficient. This handled my entire processing pipeline of grabbing the announcements, parsing, creating relevant metadata and then uploading to the the Meilisearch instance.
+
+![My Thinkpad Setup]({{ '/assets/images/profile.jpg' | relative_url }})
+_Note: You can add photos or GIFs using the `![Alt Text]({{ '/path/to/image.jpg' | relative_url }})` syntax._
+
+For a frontend I didn't need anything overly fancy to test this out some simple NextJS frontend on vercel would do the trick as none of the queries should come close to breaking free tier. There was a temptation to host everything together on Coolify so I could decrease latency however given I wasn't sure of the value of the project I made note of possible other architectures that would work and kicked them down the road for if scale would be warranted.
 
 ## Launch
 
@@ -86,3 +91,42 @@ Unsatisfied I scoped out building an alerting system to add in. This would be a 
 I noted that launch went well I had around 150 users typing things out I kept it as a free tier and then offered a paid service for greater search (2 years of documents as opposed to 1 month) and more alerts available for $49 a month. Upon further consideration I also decided to lock down the free tier as I wanted to see where the value in this product would be. I capped search at 10 searches a month and informed existing alert users that the free trial was over and I would be shifting alerts to a paid feature which I started at $10 a month to see if anyone would pay.
 
 After putting in the paywalls usage didn't really change most users would type a handful of things in think "cool" and then go do something else. Browsing through announcements after all was not their workflow so fair enough. A handful of paying users emerged but there was no real consistency between what they wanted. Some bought for alerting, some bought to use search to find a very specific thing. Most people I talked to had a need about once every other month to do deep research (Lawyers, IB, Research Houses, Random Investors).
+
+This was the first sign that
+
+1. I definitely did not have PMF. But I was in the proximity of a problem.
+2. Whatever problem that existed may be disparate so a solution may not be generalized across enough of the user base or frequent enough that it actually matters for users.
+
+So here in lies the issue. I made a product to solve a problem I thought I had. In reality I had a mild curiousity that and didn't want "Deep" information I wanted shallow information and context around the information.
+
+## Lessons and next steps
+
+A note here is more of a product breakdown than anything technical
+
+After building this I tried a couple more features I was interested in. I increased filtering dramatically to allow very granular searches such as if I look up "Trump Tariffs" to see who is mentioning that in their announcements I want to filter in on all African Gold miners between $30M and $50M that have had recent price volatility (I am quite pleased with the way I did this and think there might be some alpha in it so I will keep it private or on request for now but DM me if you're interested to kick ideas around).
+
+I also built in price reactions to announcements so you could see how much an announcement moved the market.
+
+I launched this to the user base via an email update. There was a little uptick of usage but nothing major. on each of these launches so again neither really were understood or built around a pain point.
+
+There is a particular frustration of having a project that has a little bit of traction initially but stagnates. I decided the best course of action here was to conduct user interviews (yes I know this should have been my first step).
+
+I interviewed several hedge fund managers, investor relations people, and other "players" in the game whose bread and butter (or so I thought) was navigating through ASX announcements
+
+They outlined existing solutions such as Bloomberg Terminals, CapIQ, and various other ways to get up to date information. One of the most interesting findings from these chats is the existing high value tools were used as an initial filter but the data was out of date or just incorrect.
+
+Analysts would always default to the actual source document as they it was always going to be the source of truth (or lies as I would find many companies bury or do sleight of hands with their accounting that can only really be captured by a very fine tooth comb through the fine print).
+
+The value add was not in replacing this workflow because the need for it to be completely accurate and the ability to look up the information was never really an issue as you were essentially looking for a handful of announcement types.
+
+The real issue lay in either idea generation which was where the "sifting" was before committing to a deep dive. The deep dive is very laborious so you obviously don't want to do it for every company given how much information can be hidden in fine print or other weird areas of a document or just calling up investor relations and interrogating them.
+
+Many of the investors I met had a very particular workflow for these deep dives and the best tools in the world never would replace just living within the annual/quarterly or half year reports.
+
+So where did that leave the project?
+
+Ultimately I had run out of time and while there are many parts of the project I am using for a new project(stay tuned) the world as I saw it didn't have much use for a search engine for the ASX.
+
+If you'd like to follow along with my new project in this space I will be writing a methodology of it as I create it probably here. I am writing about it on [newsletter.capitalsignal.io](https://newsletter.capitalsignal.io/) however this is more the "output" of the project. The core technical parts and learning I will be putting probably on this blog, or posting about it on my [twitter](https://x.com/damindestress) or [linkedin](https://www.linkedin.com/in/damon-ross-237b7b155/).
+
+If you enjoyed this feel free to reach out I'm currently open to contracting roles, if you do in fact think the world needs this then also reach out it was a considerable amount of work to get it to where it was

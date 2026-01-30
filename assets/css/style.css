@@ -215,6 +215,19 @@ main {
 }
 
 /* About page */
+.about {
+  max-width: 600px;
+}
+
+.about .profile-photo {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1.5rem;
+  border: 3px solid var(--border);
+}
+
 .about h1 {
   font-size: 2rem;
   margin-bottom: 1.5rem;
@@ -223,6 +236,15 @@ main {
 .about p {
   margin-bottom: 1.25rem;
   line-height: 1.75;
+}
+
+.about a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.about a:hover {
+  text-decoration: underline;
 }
 
 /* Footer */
