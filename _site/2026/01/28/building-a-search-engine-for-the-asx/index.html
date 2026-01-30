@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Building a search engine for the ASX | Damon Ross
+    </title>
+    <meta
+      name="description"
+      content="Thoughts on tech, product, and building things."
+    />
+    <link
+      rel="stylesheet"
+      href="/assets/css/style.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a href="/" class="site-title"
+          >Damon Ross</a
+        >
+        <nav>
+          <a href="/">Blog</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container"><article class="post">
+  <header class="post-header">
+    <h1>Building a search engine for the ASX</h1>
+    <time datetime="2026-01-28T00:00:00+13:00">
+      January 28, 2026
+    </time>
+  </header>
+
+  <div class="post-content">
+    <p>This post-mortem details the technical architecture and product evolution of an unstructured data search engine I built for the Australian Securities Exchange (ASX).</p>
+
+<h2 id="problem-discovery">Problem Discovery</h2>
+
+<p>The inspiration for this project came from a friend telling me of a stock that he claimed was a prime takeover target. Like many “sure things” I’ve come across I proceeded to check the latest announcements, financials and other associated information. The company itself seemed somewhat mediocre, one specific filing stood out: they had recently initiated a <strong>“Strategic Review.”</strong></p>
+
+<p>I wanted to cross-check this trigger against their history, but there was a complete lack of tools to perform granular text searches across historical filings and across companies. It occurred to me that I couldn’t do this for the entire exchange either. If I could aggregate mentions of “strategic reviews” or “asset divestments” across the ASX, I could identify sector-wide trends and health signals that are usually buried in unstructured PDF text.</p>
+
+<p>After all if I could know the aggregate of strategic reviews and their outcomes would that not tell me something even just a part of the puzzle about the current state of a company, a sector and the health of the ASX at large.</p>
+
+<h2 id="exploration">Exploration</h2>
+
+<p>Years prior to this I had been doing an ETL project for a professor to extract information from complex drug trials to build a regression model for understanding whether or not a drug had likelihood in succeeding or not. From that experience I remember vividly that</p>
+
+<ol>
+  <li>Parsing PDF’s is truly nightmarish</li>
+  <li>There is an absolutely incredible wealth of data locked away in them if you can get it out</li>
+</ol>
+
+<p>Anyone who has built a parser for PDF’s understands the pain of endless edge cases one must navigate when parsing text or information from them.</p>
+
+<p>To map out the problem space for the ASX, I sampled 50 announcements across various categories. The variation was striking from standardized digital text, high-resolution infographics, to low-quality rasterized scans.</p>
+
+<h3 id="the-extraction-pipeline">The Extraction Pipeline</h3>
+
+<p>I implemented a hybrid extraction strategy to handle these varied formats. For digital text layers, I used <code class="language-plaintext highlighter-rouge">PyMuPDF</code> due to its high-performance C backend. For scanned documents, I implemented an OCR fallback using <code class="language-plaintext highlighter-rouge">Tesseract</code> (here is a simplified version below).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">fitz</span>  <span class="c1"># PyMuPDF
+</span><span class="kn">import</span> <span class="n">pytesseract</span>
+<span class="kn">from</span> <span class="n">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="n">io</span>
+
+<span class="k">def</span> <span class="nf">extract_text</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">):</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">fitz</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="sh">""</span>
+    <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
+        <span class="c1"># Attempt high-fidelity digital extraction
+</span>        <span class="n">page_text</span> <span class="o">=</span> <span class="n">page</span><span class="p">.</span><span class="nf">get_text</span><span class="p">()</span>
+
+        <span class="c1"># Fallback to OCR for rasterized/scanned content
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">page_text</span><span class="p">.</span><span class="nf">strip</span><span class="p">():</span>
+            <span class="n">pix</span> <span class="o">=</span> <span class="n">page</span><span class="p">.</span><span class="nf">get_pixmap</span><span class="p">()</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="n">io</span><span class="p">.</span><span class="nc">BytesIO</span><span class="p">(</span><span class="n">pix</span><span class="p">.</span><span class="nf">tobytes</span><span class="p">()))</span>
+            <span class="n">page_text</span> <span class="o">=</span> <span class="n">pytesseract</span><span class="p">.</span><span class="nf">image_to_string</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+        <span class="n">text</span> <span class="o">+=</span> <span class="n">page_text</span>
+    <span class="k">return</span> <span class="n">text</span>
+</code></pre></div></div>
+
+<p>This strategy worked well for the most part however there was an around a ~5% error rate. Some documents would parse with excessive spacing, resulting in text like T a x P a i d . . . . . 5 0 0 or L i a b i l i t i e s.</p>
+
+<h3 id="the-search-architecture">The Search Architecture</h3>
+
+<p>The next hurdle was Information Retrieval (IR). While a linear search (<code class="language-plaintext highlighter-rouge">grep</code>) is trivial for a single 100-page document, it is computationally infeasible for a low-latency UI scanning a corpus of 200,000+ files. To achieve sub-second results, I needed a proper <strong>inverted index</strong>.</p>
+
+<p>I evaluated several backends:</p>
+
+<ul>
+  <li><strong>ElasticSearch:</strong> Industry standard, but the operational overhead and JVM memory footprint were excessive for an MVP.</li>
+  <li><strong>PostgreSQL (FTS):</strong> Attractive for its relational consistency, but I wanted more control over typo-tolerance and ranking out of the box.</li>
+  <li><strong>Meilisearch:</strong> I ultimately chose Meilisearch for its optimized prefix-search and ease of deployment.</li>
+</ul>
+
+<p>Meilisearch worked great out of the box but hit a scaling bottleneck when it came to large documents (annual reports) which created significant indexing lag and bloated the search results. Returning a 200-page document for a single keyword match is a poor user experience after all.</p>
+
+<p>To solve this, I implemented a <strong>semantic chunking strategy</strong>. By breaking documents into overlapping text segments linked to a master Document ID, I could return the specific page or paragraph relevant to the user, significantly increasing the “signal” in the search results.</p>
+
+<h3 id="overcoming-character-positioning-artifacts">Overcoming Character Positioning Artifacts</h3>
+
+<p>The aforementioned error rate really shone through here and presented an interesting engineering challenge. Some PDFs store character coordinates rather than logical strings, resulting in the parsed text like <code class="language-plaintext highlighter-rouge">T a x  P a i d . . . 5 0 0</code>.</p>
+
+<p>Since this breaks a token-based inverted index, I had to decide between a heavy dictionary-based re-stitching heuristic or moving forward with the 95% of documents that parsed correctly. I opted for the latter to maintain ETL velocity for the beta, but it highlighted the inherent fragility of PDF-based data pipelines.</p>
+
+<p>There was a great temptation (and many attempts) to solve this problem but after several fruitless hours I began to realize how this won’t be the blocker that answers whether the market fundamentally wants this product or not.</p>
+
+<h2 id="architecture--infrastructure">Architecture &amp; Infrastructure</h2>
+
+<p>To keep costs low I decoupled the heavy lifting from the user-facing application.</p>
+
+<p>The core ETL pipeline ran on a dedicated local worker node: an old T440P Thinkpad with 16GB of RAM. This machine handled the CPU-intensive tasks: polling the ASX feeds, normalizing text, and enriching metadata. This allowed me to keep the cloud infrastructure lean.</p>
+
+<p>While there was some consideration of whether I should have more redundancy built in say if my power went out, internet turned off or someone simply closed the lid for the purposes of keeping this a rough and ready MVP I figured I could get away with it.</p>
+
+<p>The frontend was a Next.js application deployed on Vercel, communicating with a Meilisearch instance on a DigitalOcean VPS.</p>
+
+<h2 id="launch-and-query-optimization">Launch and Query Optimization</h2>
+
+<p>The beta launch had autocomplete, 1 year of data and a few companies with a full announcement history indexed, and some minimal filtering functionality. I started on a 4GB Digital Ocean VPS at first but I moved off that after trialing with a few users and finding the search slow and dangerously maxing out the CPU usage on queries.</p>
+
+<p><img src="/assets/images/demo.gif" alt="ASX Search Engine Demo" /></p>
+
+<p>The Meilisearch instance was initially deployed on a 4GB RAM VPS but it was fairly evident it wouldn’t be able to cope with the writes from indexing new announcements every 5 minutes or so and autocomplete just hammering the server.</p>
+
+<p>I identified <strong>query amplification</strong> as the primary culprit. With autocomplete enabled, every keystroke triggered a new search request. While it provided a slick UI I wasn’t really convinced it was providing much value while it was taxing the CPU unnecessarily.</p>
+
+<p>After a few user interviews the main responses were some variations of “its cool but doesn’t help much for finding things” so I remained unconvinced of its value.</p>
+
+<p>After all the experience should be more about delivering high-quality, relevant results rather than having a rapidly changing list of menu items available on every keystroke.</p>
+
+<p>I disabled autocomplete. This immediately stabilized the CPU load and allowed me to focus on the quality of the primary search results.</p>
+
+<p>I eventually upscaled to an 8GB VPS to give the inverted index more breathing room in memory, ensuring that even concurrent complex queries remained performant.</p>
+
+<h2 id="approximating-the-pain-point">Approximating the Pain Point</h2>
+
+<p>Many engineers who have built exactly the tool they wanted know the satisfaction of designing for their own needs. But if you’ve taken the next step and tried to monetize it, you know the subsequent pain of finding out that your “itch” was yours alone.</p>
+
+<p>There was an initial magic to pulling up every “Strategic Review” as I had imagined.</p>
+
+<p>But as the French exclaim: <em>Pourquoi?</em> For what? While I had the text and a view of who was conducting reviews, I still had a massive amount of manual research left to do. The search was the start of the thread, not the end of the needle.</p>
+
+<h3 id="the-alerting-engine">The Alerting Engine</h3>
+
+<p>Unsatisfied, I scoped out an alerting system. This was a minimal technical addition: during the parsing stage on the Thinkpad, I added a check to see if an announcement matched specific keywords.</p>
+
+<p>To keep this efficient, I avoided a naive scan where every document is checked against every search term for every user. Instead, I maintained an <strong>inverted index</strong> of active alert terms. During the ingestion pipeline, a document is tokenized and checked once against this global list of “wanted” terms. If a hit is found, the system retrieves the associated User IDs and dispatches a notification.</p>
+
+<p><img src="/assets/images/alert.png" alt="ASX Search Engine Demo" /></p>
+
+<p>I capped the free tier at two alerts and introduced a $10/month paid tier to see if anyone would bite.</p>
+
+<h2 id="the-pmf-reality-check">The PMF Reality Check</h2>
+
+<p>The launch had gone well but I still was unsure what users were finding most valuable. I decided to paywall features and introduce usage limits.</p>
+
+<p>After putting up the paywalls, usage didn’t really change. Most users would type a handful of queries, think “cool,” and then move on. Browsing through announcements simply wasn’t their daily workflow.</p>
+
+<p>A handful of paying users emerged. Lawyers, IB analysts, and dedicated researchers but there was no real consistency in what they wanted. Some bought for the alerting; others just needed to find one specific historical document. Most people I talked to only needed to perform this kind of deep research once every few months. This was the first sign that:</p>
+
+<ol>
+  <li>I didn’t have Product-Market Fit (PMF), but I was in the proximity of a problem.</li>
+  <li>The problem was disparate. A generalized solution didn’t provide enough frequent value to justify a broad subscription model.</li>
+</ol>
+
+<p>Herein lies the issue: I built a product to solve a problem I <em>thought</em> I had. In reality, I had a curiosity. I didn’t want “deep” information, I wanted shallow context around signals.</p>
+
+<h2 id="lessons-and-next-steps">Lessons and next steps</h2>
+
+<p>I tried a few more “engineer-brain” features. I pushed the filtering to the extreme, allowing granular searches like <em>“Show me every African Gold miner with a market cap between $30M and $50M mentioning ‘Tariffs’ that has had recent price volatility.”</em></p>
+
+<p><img src="/assets/images/search_demo.gif" alt="Fine Grain Filter" /></p>
+
+<p>I also built in price reactions so you could see exactly how much an announcement moved the market in real-time. But again, these launches saw small upticks in usage followed by stagnation. The engine was powerful and there were many interesting threads to pull on however there was no workflow capture.</p>
+
+<p>And so like all classic products that gain traction but stagnated after a handful of paying users I decided to do what everyone tells you to do in the beginning and conduct some thorough customer research and find what end users actual workflows, pain points and existing solutions are.</p>
+
+<p>I interviewed hedge fund managers and IR professionals. They all said the same thing: they use Bloomberg or CapIQ for the initial filter, but they always default to the source PDF. Why? Because companies bury the “truth” in the fine print or use accounting sleight-of-hand that only a fine-tooth comb can catch.</p>
+
+<p>An interesting insight after the customer interviews was very few even relied on Bloomberg or Cap IQ as the data was often out of date or just plain wrong. Despite the solution costing some 50k a year unless you were dealing with major US companies often you had to dive into the annual reports yourself.</p>
+
+<p>The value add was not in replacing this workflow because the need for it to be completely accurate and the ability to look up the information was never really an issue as you were essentially looking for a handful of announcement types.</p>
+
+<p>The real issue lay in either idea generation which was where the “sifting” was before committing to a deep dive. The deep dive is very laborious so you obviously don’t want to do it for every company given how much information can be hidden in fine print or other weird areas of a document or just calling up investor relations and interrogating them.</p>
+
+<h3 id="where-that-leaves-the-project">Where that leaves the project</h3>
+
+<p>Ultimately, I ran out of time and money. While the search engine for the ASX didn’t set the world on fire, many parts of it are serving as the foundation for my next project. And as always with projects like this you do learn quite a lot.</p>
+
+<p>I recently experimented with an <strong>MCP server</strong> that gives LLMs access to this search engine and price/vol data which involves some interesting technical trade-offs regarding context windows and data density that I’ll save for a separate post.</p>
+
+<p>If you’d like to follow along, I’ll be writing about the core technical learnings of my new project here (probably), or you can find me on <a href="https://x.com/damindestress">Twitter</a> or <a href="https://www.linkedin.com/in/damon-ross-237b7b155/">LinkedIn</a>.</p>
+
+<p>If you enjoyed this or have ideas for the space, reach out. I’m currently open to contracting roles. And if you’re one of the few who thinks the world <em>does</em> need this search engine, definitely DM me I’ve already done the hard part.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <a href="/">&larr; Back to all posts</a>
+  </footer>
+</article>
+</main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="social-links">
+          <a
+            href="https://github.com/damonphilipross"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+          <a href="https://x.com/damindestress" target="_blank" rel="noopener"
+            >Twitter</a
+          >
+          <span class="email-display">damonross@proton.me</span>
+        </div>
+        <p>&copy; 2026 Damon Ross</p>
+      </div>
+    </footer>
+  </body>
+</html>
