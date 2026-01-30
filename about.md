@@ -20,6 +20,6 @@ My interests gravitate toward economics, big messy data projects, and statistics
 
 I use this blog to share technical breakdowns of the projects I’m building. If you’re working on something interesting and need someone who can jump into the deep end of a complex problem, I’d love to hear from you.
 
-You can get in touch with me on <a href="https://www.linkedin.com/in/damon-ross-237b7b155/" target="_blank" rel="noopener">LinkedIn</a>, <a href="https://x.com/damindestress" target="_blank" rel="noopener">Twitter</a>, or <a href="#" onclick="showEmail(); return false;">email me</a>.
+You can get in touch with me on <a href="https://www.linkedin.com/in/damon-ross-237b7b155/" target="_blank" rel="noopener">LinkedIn</a>, <a href="https://x.com/damindestress" target="_blank" rel="noopener">Twitter</a>, or <span class="email-display">{{ site.email | replace: "@", '<span style="display:none">null</span>@' }}</span>.
 
 </div>

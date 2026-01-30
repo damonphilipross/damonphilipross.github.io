@@ -266,6 +266,10 @@ main {
   margin-bottom: 1rem;
 }
 
+.email-display {
+  font-family: inherit;
+}
+
 .social-links a,
 .social-links .email-display {
   color: var(--text-light);
