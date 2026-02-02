@@ -1,5 +1,7 @@
 /* Reset and base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -15,7 +17,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    sans-serif;
   font-size: 18px;
   line-height: 1.6;
   color: var(--text);
@@ -153,7 +157,8 @@ main {
   text-decoration: underline;
 }
 
-.post-content ul, .post-content ol {
+.post-content ul,
+.post-content ol {
   margin: 1rem 0 1.25rem 1.5rem;
 }
 
@@ -170,7 +175,7 @@ main {
 }
 
 .post-content code {
-  font-family: 'SF Mono', Consolas, monospace;
+  font-family: "SF Mono", Consolas, monospace;
   font-size: 0.9em;
   background: #f0f0f0;
   padding: 0.2em 0.4em;
@@ -261,7 +266,12 @@ main {
   margin-bottom: 1rem;
 }
 
-.social-links a {
+.email-display {
+  font-family: inherit;
+}
+
+.social-links a,
+.social-links .email-display {
   color: var(--text-light);
   text-decoration: none;
   font-size: 0.95rem;

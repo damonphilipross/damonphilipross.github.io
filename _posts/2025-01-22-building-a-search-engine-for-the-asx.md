@@ -19,7 +19,7 @@ After all if I could know the aggregate of strategic reviews and their outcomes 
 Years prior to this I had been doing an ETL project for a professor to extract information from complex drug trials to build a regression model for understanding whether or not a drug had likelihood in succeeding or not. From that experience I remember vividly that
 
 1. Parsing PDF's is truly nightmarish
-2. There is an absolutely incredible wealth of data locked away in them if you can figure out parsing
+2. There is an absolutely incredible wealth of data locked away in them if you can get it out
 
 Anyone who has built a parser for PDF's understands the pain of endless edge cases one must navigate when parsing text or information from them.
 
@@ -52,7 +52,7 @@ def extract_text(pdf_path):
     return text
 ```
 
-This strategy worked well for the most part however there was an around a ~5% error rate. Some documents would parse with excessive spacing, resulting in text like T a x P a i d . . . . . 5 0 0 or L i a b i l i t i e s. This creates a nightmare for search, as Meilisearch indexes each character individually rather than the full word—effectively breaking its inverted index.
+This strategy worked well for the most part however there was an around a ~5% error rate. Some documents would parse with excessive spacing, resulting in text like T a x P a i d . . . . . 5 0 0 or L i a b i l i t i e s.
 
 ### The Search Architecture
 
@@ -70,7 +70,7 @@ To solve this, I implemented a **semantic chunking strategy**. By breaking docum
 
 ### Overcoming Character Positioning Artifacts
 
-One "brilliant" engineering challenge surfaced during indexing: non-uniform kerning. Some PDFs store character coordinates rather than logical strings, resulting in parsed text like `T a x  P a i d . . . 5 0 0`.
+The aforementioned error rate really shone through here and presented an interesting engineering challenge. Some PDFs store character coordinates rather than logical strings, resulting in the parsed text like `T a x  P a i d . . . 5 0 0`.
 
 Since this breaks a token-based inverted index, I had to decide between a heavy dictionary-based re-stitching heuristic or moving forward with the 95% of documents that parsed correctly. I opted for the latter to maintain ETL velocity for the beta, but it highlighted the inherent fragility of PDF-based data pipelines.
 
@@ -80,7 +80,9 @@ There was a great temptation (and many attempts) to solve this problem but after
 
 To keep costs low I decoupled the heavy lifting from the user-facing application.
 
-The core ETL pipeline ran on a dedicated local worker node: an old T440P Thinkpad with 16GB of RAM. This machine handled the CPU-intensive tasks: polling the ASX feeds, normalizing text, and enriching metadata. This allowed me to keep the cloud infrastructure lean. While there was some consideration of whether I should have more redundancy built in say if my power went out, internet turned off or someone simply closed the lid for the purposes of keeping this a rough and ready MVP I figured I could get away with it.
+The core ETL pipeline ran on a dedicated local worker node: an old T440P Thinkpad with 16GB of RAM. This machine handled the CPU-intensive tasks: polling the ASX feeds, normalizing text, and enriching metadata. This allowed me to keep the cloud infrastructure lean.
+
+While there was some consideration of whether I should have more redundancy built in say if my power went out, internet turned off or someone simply closed the lid for the purposes of keeping this a rough and ready MVP I figured I could get away with it.
 
 The frontend was a Next.js application deployed on Vercel, communicating with a Meilisearch instance on a DigitalOcean VPS.
 
@@ -94,17 +96,21 @@ The Meilisearch instance was initially deployed on a 4GB RAM VPS but it was fair
 
 I identified **query amplification** as the primary culprit. With autocomplete enabled, every keystroke triggered a new search request. While it provided a slick UI I wasn't really convinced it was providing much value while it was taxing the CPU unnecessarily.
 
-After a few user interviews the main responses were some variations of "its cool but doesn't help much for finding things" so I remained unconvinced of its value. More users seemed to actually rely on the "search-as-you-type" suggestions for deep research, I disabled autocomplete. This immediately stabilized the CPU load and allowed me to focus on the quality of the primary search results.
+After a few user interviews the main responses were some variations of "its cool but doesn't help much for finding things" so I remained unconvinced of its value.
+
+After all the experience should be more about delivering high-quality, relevant results rather than having a rapidly changing list of menu items available on every keystroke.
+
+I disabled autocomplete. This immediately stabilized the CPU load and allowed me to focus on the quality of the primary search results.
 
 I eventually upscaled to an 8GB VPS to give the inverted index more breathing room in memory, ensuring that even concurrent complex queries remained performant.
-
-The experience would be more about delivering high-quality, relevant results rather than having a rapidly changing list of menu items available on every keystroke.
 
 ## Approximating the Pain Point
 
 Many engineers who have built exactly the tool they wanted know the satisfaction of designing for their own needs. But if you've taken the next step and tried to monetize it, you know the subsequent pain of finding out that your "itch" was yours alone.
 
-There was an initial magic to pulling up every "Strategic Review" as I had imagined. But as the French exclaim: _Pourquoi?_ For what? While I had the text and a view of who was conducting reviews, I still had a massive amount of manual research left to do. The search was the start of the thread, not the end of the needle.
+There was an initial magic to pulling up every "Strategic Review" as I had imagined.
+
+But as the French exclaim: _Pourquoi?_ For what? While I had the text and a view of who was conducting reviews, I still had a massive amount of manual research left to do. The search was the start of the thread, not the end of the needle.
 
 ### The Alerting Engine
 
@@ -135,9 +141,9 @@ I tried a few more "engineer-brain" features. I pushed the filtering to the extr
 
 ![Fine Grain Filter](/assets/images/search_demo.gif)
 
-I also built in price reactions so you could see exactly how much an announcement moved the market in real-time. But again, these launches saw small upticks in usage followed by stagnation. The engine was powerful the there were many interesting threads to pull on however there was no workflow capture.
+I also built in price reactions so you could see exactly how much an announcement moved the market in real-time. But again, these launches saw small upticks in usage followed by stagnation. The engine was powerful and there were many interesting threads to pull on however there was no workflow capture.
 
-And so like all classic products that gain traction but stagnant after a handful of paying users I decided to do what everyone tells you to do in the beginning and conduct some thorough customer research and find what end users actual workflows, pain points and existing solutions are.
+And so like all classic products that gain traction but stagnated after a handful of paying users I decided to do what everyone tells you to do in the beginning and conduct some thorough customer research and find what end users actual workflows, pain points and existing solutions are.
 
 I interviewed hedge fund managers and IR professionals. They all said the same thing: they use Bloomberg or CapIQ for the initial filter, but they always default to the source PDF. Why? Because companies bury the "truth" in the fine print or use accounting sleight-of-hand that only a fine-tooth comb can catch.
 
@@ -151,7 +157,7 @@ The real issue lay in either idea generation which was where the "sifting" was b
 
 Ultimately, I ran out of time and money. While the search engine for the ASX didn't set the world on fire, many parts of it are serving as the foundation for my next project. And as always with projects like this you do learn quite a lot.
 
-I recently experimented with an **MCP server** that gives LLMs access to this search engine and price/vol data—which involves some interesting technical trade-offs regarding context windows and data density that I’ll save for a separate post.
+I recently experimented with an **MCP server** that gives LLMs access to this search engine and price/vol data which involves some interesting technical trade-offs regarding context windows and data density that I’ll save for a separate post.
 
 If you'd like to follow along, I'll be writing about the core technical learnings of my new project here (probably), or you can find me on [Twitter](https://x.com/damindestress) or [LinkedIn](https://www.linkedin.com/in/damon-ross-237b7b155/).
 
