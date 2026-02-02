@@ -1,10 +1,10 @@
 ---
 layout: post
-title: Building a search engine for financial announcements
+title: Building a search engine to find gold on the ASX
 date: 2026-01-28
 ---
 
-This post-mortem details the technical architecture and product evolution of an unstructured data search engine I built to search through financial announcements on the ASX.
+This post-mortem details the technical architecture and product evolution of an unstructured data search engine I built to search through financial announcements on the Australian Securities Exchange (ASX) to find hidden insights.
 
 ## Problem Discovery
 
