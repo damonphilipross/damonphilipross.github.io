@@ -38,7 +38,7 @@ The target variable is simple: did the company raise capital within 180 days? Wi
 
 Dataset Overview
 
-![Dataset overview showing 4C snapshot volume, raise base rates, and sector mix](./charts/dataset_overview.png)
+![Dataset overview showing 4C snapshot volume, raise base rates, and sector mix](/assets/images/charts/dataset_overview.png)
 
 Roughly 29% of 4C snapshots are followed by a raise within 180 days. About 46% see a raise within a year.
 
@@ -90,11 +90,11 @@ The 85% precision number shows that the model strongly flags a company as needin
 
 ROC Curve 180 Days
 
-![ROC curve for the 180-day capital raise prediction model](./charts/roc_180d.png)
+![ROC curve for the 180-day capital raise prediction model](/assets/images/charts/roc_180d.png)
 
 Lift Chart 180 Days
 
-![Decile lift chart for 180-day raise predictions](./charts/lift_chart_180d.png)
+![Decile lift chart for 180-day raise predictions](/assets/images/charts/lift_chart_180d.png)
 
 The lift chart is perhaps most relevant for practical use. If you rank companies by predicted raise probability and look at the top decile, you see roughly 1.7x the base rate of raises.
 
@@ -103,7 +103,7 @@ The feature importance analysis confirms the model is picking up sensible driver
 
 Feature Importance
 
-![Feature importance chart for the raise prediction model](./charts/feature_importance.png)
+![Feature importance chart for the raise prediction model](/assets/images/feature_importance.png)
 
 **Top predictors:**
 
@@ -130,7 +130,7 @@ I added a composite "deterioration score" that flags these situations, and it co
 
 ## Runway Scatter
 
-![Scatter plot of cash runway versus predicted 180-day raise probability](./charts/runway_scatter.png)
+![Scatter plot of cash runway versus predicted 180-day raise probability](/assets/images/charts/runway_scatter.png)
 
 This scatter plot shows the relationship between cash runway and predicted raise probability. Low runway (left side) concentrates high probabilities (top), but there's significant variation. That variation is explained by the other features: recent raise history, sector, trajectory, and so on.
 
@@ -146,7 +146,7 @@ An important check is whether the predicted probabilities are well calibrated. A
 
 Calibration Curve 180 Days
 
-![Calibration curve for the 180-day raise prediction model](./charts/calibration_180d.png)
+![Calibration curve for the 180-day raise prediction model](/assets/images/charts/calibration_180d.png)
 
 The calibration curve shows reasonable alignment, though there's some overconfidence at the low end and underconfidence at the high end. While typical for gradient boosting models this could be addressed with isotonic calibration in production.
 
