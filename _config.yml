@@ -2,6 +2,7 @@
 title: Damon Ross
 description: Thoughts on tech, product, and building things.
 author: Damon Ross
+timezone: Pacific/Auckland
 
 # Social links
 github_username: damonphilipross
@@ -13,6 +14,7 @@ email: damonross@proton.me
 markdown: kramdown
 highlighter: rouge
 permalink: /:year/:month/:day/:title/
+future: true
 
 # Defaults
 defaults:
