@@ -4,7 +4,7 @@ title: Can Claude do ASX equity research? I ran the experiment
 date: 2026-10-15
 ---
 
-Back in January I wrote that I'd recently experimented with an MCP server giving LLMs access to my filings search engine, and that the technical trade-offs "I'll save for a separate post." Well, nine months late, but here's the promised writeup.
+Back in January I wrote that I'd recently experimented with an MCP server giving LLMs access to my filings search engine, and that the technical trade-offs "I'll save for a separate post." Well, nine months late, but here's the promised writeup. (The product is [Capital Signal](https://capitalsignal.io/).)
 
 I've seen a lot of takes lately on how MCP servers are dead, harnesses are useless, and everything can be done with an agent scouring the internet for information the future of software largely just being agents that spin up code on demand and throw it away after.
 See this tweet:
@@ -228,7 +228,7 @@ What happens next is largely up to users. Optimising for a workflow is a matter 
 
 But the bigger point, and the reason this post exists is to illustrate that while intelligence is nice and these models are truly impressive, significant amounts of functionality are waiting to be unlocked from them by supplying them with the right data and tools.
 
-If you run Claude Desktop or Claude Code and work ASX names, the MCP server is live with trial credits, and every figure it returns carries a filing ID you can check. If you're a fund that wants this run across your book, or a broker who wants deal origination flow instead of a screen someone ran on Monday, reach out — I'm open to contracting work, and I'd rather build this with one fund directly than guess at the roadmap alone.
+If you run Claude Desktop or Claude Code and work ASX names, [Capital Signal](https://capitalsignal.io/) is live with trial credits, and every figure it returns carries a filing ID you can check. If you're a fund that wants this run across your book, or a broker who wants deal origination flow instead of a screen someone ran on Monday, reach out — I'm open to contracting work, and I'd rather build this with one fund directly than guess at the roadmap alone.
 
 Full machine record (battery, rubrics, ground truth, transcripts, per-round reports) — ask me and I'll open-source the eval folder.
 
