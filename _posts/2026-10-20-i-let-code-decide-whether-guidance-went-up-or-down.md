@@ -1,50 +1,57 @@
 ---
 layout: post
-title: "I let code decide whether guidance went up or down. On my test set it made things worse."
+title: "Checking LLM extraction at scale: get two answers, only look where they disagree"
 date: 2026-10-20
 ---
 
 I've been running evals of different agents against each other on my ASX filings data (I wrote about that [last week](/2026/10/15/can-claude-do-asx-equity-research/)). During one of those runs Claude went back to the original filing and found a bug in my data. A childcare operator, Mayfield, had cut its EBITDA guidance from $4.7–5.3 million to $2.4–2.7 million, roughly in half, and my pipeline had it down as an upgrade.
 
-The model that did the extraction had read every number correctly. It had also read the line saying the new figure was "an increase of 4% to 17%" on last year, and it went with that.
+The model had read every number correctly. It had also read the line saying the new figure was "an increase of 4% to 17%" on last year, and gone with that.
 
-This is generally annoying for a couple of reasons. One wrong label is easy to fix, but if one is wrong there are probably more, and every fix to the extraction means a huge backfill across hundreds of thousands of filings. And this is a data project. High quality data is paramount to the integrity of the product, otherwise what's the point, you may as well go get any old data and call it a day.
+That's annoying for a couple of reasons. If one is wrong there are probably more, and every fix to the extraction means a huge backfill. And this is a data project. High quality data is paramount to the integrity of the product, otherwise what's the point, you may as well go get any old data and call it a day.
 
-So I changed the design. The model now only reads: it reports the old figure, the new figure, the periods, and whether the old figure was actually guidance or just last year's result. A few lines of plain code then compare the midpoints and decide the direction.
+The problem is throughput. There are about 820,000 filings in the database. I can't read them all, and I can't trust any single answer a model gives me. So how do you find the wrong rows without checking every row?
+
+## Two answers from one read
+
+The model still does all the reading. For each guidance announcement it gives me two things:
+
+1. **Its verdict:** upgrade, downgrade, reaffirmed, or first-time guidance.
+2. **The numbers:** the old figure, the new figure, the periods, and whether the old figure was really guidance or just last year's result.
+
+Then a few lines of plain code compare the midpoints of the new and old numbers and give a second verdict. No regex, no reading. Just subtraction.
 
 <div class="ge-flow">
   <div class="ge-step"><div class="ge-k">1</div><b>ASX PDF</b><span>"FY26 EBITDA now $2.4–2.7m, below original guidance of $4.7–5.3m"</span></div>
   <div class="ge-arrow">→</div>
-  <div class="ge-step"><div class="ge-k">2</div><b>Model reads</b><span>old 4.7–5.3 · new 2.4–2.7 · same period · prior was guidance</span><em class="ge-tag ge-ind">and gives its own label</em></div>
+  <div class="ge-step"><div class="ge-k">2</div><b>Model reads, gives verdict + numbers</b><span>old 4.7–5.3 · new 2.4–2.7 · same period · prior was guidance</span><em class="ge-tag ge-ind">verdict: DOWNGRADE</em></div>
   <div class="ge-arrow">→</div>
   <div class="ge-step"><div class="ge-k">3</div><b>Code subtracts</b><span>midpoint 5.0 → 2.55 = −49%</span><em class="ge-tag ge-sl">DOWNGRADE</em></div>
+  <div class="ge-arrow">→</div>
+  <div class="ge-step"><div class="ge-k">4</div><b>Compare</b><span>agree → keep · disagree → second look</span><em class="ge-tag ge-ind">0 wrong agreements in 400</em></div>
 </div>
 
-That felt obviously right, but I wanted to know if it actually was right, and whether it meant I could get away with a cheaper model.
+Now every row has two answers that can fail in different ways. The model can misjudge the direction (Mayfield). The code can only be as good as the numbers it's given and the rules I wrote.
 
-## The test
+## Testing it
 
-I put together 40 ASX guidance announcements from the past 15 months: 14 upgrades, 12 downgrades, 8 reaffirmations and 6 first-time guides. About a third are easy. The rest have the stuff that trips models up: half-year guidance next to full-year figures, "at least" floors, two currencies in one sentence, last year's result printed next to the new range, and releases that guide four metrics at once. I wrote every answer by hand from the PDF, with the page and a short quote, and a script checks each quote really is on that page.
+I put together 40 ASX guidance announcements from the past 15 months, mostly the tricky kind: "at least" floors, half-year guidance next to full-year figures, last year's result printed beside the new range, releases that guide four metrics at once. I wrote every answer by hand from the PDF, with the page and a quote.
 
-Then I ran five models over all 40, twice each, with the same prompt, the same text and the same settings. Four are cheap or open models (Qwen 3.7 Flash, Xiaomi MiMo v2.5, DeepSeek V4 Pro and GLM 5.3 Flash) and one is the cheap model from a frontier lab (Claude Haiku 5.5). I didn't bother with a top-end model; nobody sensible pays those prices for this kind of extraction.
+Then I ran five models over all 40, twice each: four cheap or open models (Qwen 3.7 Flash, Xiaomi MiMo v2.5, DeepSeek V4 Pro, GLM 5.3 Flash) and the cheap model from a frontier lab (Claude Haiku 5.5). The whole run cost 49 cents.
 
-For every answer I scored two things: the direction the model gave itself, and the direction my code worked out from the model's numbers. I also scored whether the model got the previous figure right. The whole run cost 49 cents.
+## When they agree, they're right
 
-## What happened
+This is the result that matters. Across 400 attempts, whenever the model's verdict and the code's verdict agreed, the answer was correct. Not one wrong agreement.
 
-Honestly, I thought the code was going to be 100% accurate. It's subtraction. It wasn't. The code-computed direction scored between 89% and 96% for every model, depending on how strictly you score the edge cases, and the confidence intervals overlap almost completely. Once the code makes the call it barely matters which model you use.
+<div class="asx-chart" style="height:380px"><canvas id="chart-agreement"></canvas></div>
 
-The surprise was the other column. The models' own labels scored 92.5% for Qwen and 97.5–100% for the other four. For every model the label was at least as accurate as the code, and for four of them it was 4 to 9 points better. My safety net was costing me accuracy.
+They disagreed on between 4% and 13% of rows depending on the model, and every error sat in there. So instead of checking 820,000 rows, I only need to look at the one in ten or so where the two answers don't match.
 
-<div class="asx-chart" style="height:360px"><canvas id="chart-label-vs-code"></canvas></div>
+## Who's right when they disagree
 
-To be clear about how small these numbers are: each announcement is worth 2.5 points, so a 9-point gap is three or four announcements. But it's the same three or four every time, and I can point to why.
+Mostly the model. Honestly I thought the code would be 100% accurate, it's subtraction, but it lost points two ways.
 
-## Where the code goes wrong
-
-Three cases explain almost all of it.
-
-**Floors.** Regal Partners raised its estimate of performance fees from "at least $35 million" to "at least $40 million". Every model read that correctly and called it an upgrade. My code has a rule for floors: if the new figure falls below the old floor it's a downgrade, otherwise the guidance is reaffirmed. I never wrote a branch for a floor that goes *up*, so a perfect extraction came out as "reaffirmed". That one's a bug in my code, not in any model.
+**A bug in my rules.** Regal Partners raised its estimate from "at least $35 million" to "at least $40 million". Every model called it an upgrade. My code had no branch for a floor going *up*, so it said "reaffirmed".
 
 <div class="ge-card">
   <div class="ge-card-h">Regal Partners: a floor that went up</div>
@@ -53,9 +60,7 @@ Three cases explain almost all of it.
   <p class="ge-note">Perfect extraction, correct label, and my floor rule turned it into "reaffirmed". That one is my bug.</p>
 </div>
 
-**Priors that aren't printed.** Maas Group said its FY26 EBITDA guidance had "increased to $300–310 million" but never restated the old range. Pioneer Credit said its new NPAT guidance was "a 28% increase on original guidance" without giving the original number. A careful model leaves the old figure blank, and the code, with nothing to compare, declines to answer. The models just read "increased" and got it right.
-
-**Invented numbers.** On Maas, Qwen didn't leave the prior blank. It reported a previous range of $280–290 million, which appears nowhere in the document. The code compared the real new range with the made-up old one and said "upgrade", which is right by accident. I now score "direction right *and* prior figure right" as its own column, because a pipeline that's right for invented reasons will eventually be wrong for them too.
+**Nothing to subtract.** Maas Group said guidance had "increased to $300–310 million" without printing the old range. The models read "increased" and got it right. The code had no old number, so it couldn't answer. Qwen made one up ($280–290 million, nowhere in the document), which is its own kind of wrong.
 
 <div class="ge-card">
   <div class="ge-card-h">Maas Group: no prior printed, and one model invents it</div>
@@ -64,9 +69,7 @@ Three cases explain almost all of it.
   <p class="ge-note">The honest models leave the prior blank and the code has nothing to compare. Qwen makes one up and the code gets it right by accident.</p>
 </div>
 
-## Where the code earns its keep
-
-The code still does one job. On the Mayfield cut that started all this, Qwen called it an upgrade on three of four attempts while reporting the numbers perfectly, and the code turned every one of them into the correct "downgrade". The other four models got it right on their own.
+The code was right once: Mayfield, where Qwen read the numbers perfectly and still called a 49% cut an upgrade.
 
 <div class="ge-card">
   <div class="ge-card-h">Mayfield: the one the code saves</div>
@@ -75,32 +78,32 @@ The code still does one job. On the Mayfield cut that started all this, Qwen cal
   <p class="ge-note">Every number read correctly, a 49% cut, labelled an upgrade. Exactly the bug that started this.</p>
 </div>
 
-So the safety net catches the weakest model's worst habit and gets in the way of everyone else.
+Which is the point. Neither answer should automatically overrule the other. Each one catches mistakes the other makes.
 
-## What I'm changing
+<div class="asx-chart" style="height:360px"><canvas id="chart-label-vs-code"></canvas></div>
 
-The answer isn't to throw the arithmetic away. The code and the label fail on *different* announcements, and that's the useful bit. When they agreed, which they did on 35 or more of the 40 for every model, the answer was right every time: not one wrong agreement in 400 attempts. When they disagree it's almost always a floor, a missing prior, or a model reading the wrong comparison. Those deserve a second look, not an automatic winner.
+## Bonus: the cheap model is fine
 
-<div class="asx-chart" style="height:380px"><canvas id="chart-agreement"></canvas></div>
-
-So I'm going to:
-
-- fix the floor rule so a raised floor counts as an upgrade;
-- keep the model's label and send disagreements to review instead of always overruling the model;
-- add more spot checks through the ETL pipeline, so I catch the next Mayfield before an agent reading the filing does;
-- pick the model on cost. GLM 5.3 Flash got every label and every prior right for about 23 cents per thousand announcements, a fifteenth of the price of the most expensive model I tried, which scored the same.
+GLM 5.3 Flash got every verdict and every old figure right for about 23 cents per thousand announcements. DeepSeek V4 Pro got the same score at 15 times the price.
 
 <div class="asx-chart" style="height:380px"><canvas id="chart-cost"></canvas></div>
 
+## What I'm changing
+
+- When the two answers disagree, the row gets a second look instead of the code winning by default. I haven't measured the second look yet (re-asking the model with a narrower question vs a person checking it); that's the next test.
+- When there's no old number to subtract, keep the model's verdict and flag it, rather than dropping the row.
+- Fix the floor rule.
+- Add more spot checks through the ETL pipeline, so I catch the next Mayfield before an agent reading the filing does.
+
 ## The bigger point
 
-These models are amazing, but they're flawed, and you need safeguards built into every agentic pipeline, whether it's writing code, extracting data or running an ETL job. Something has to check the output. If you think you can just defer everything to the model, this is a pretty cheap way to find out you can't. And in my case the safeguard I built needed checking too.
+These models are amazing, but they're flawed, and you need safeguards built into every agentic pipeline, whether it's writing code, extracting data or running an ETL job. The trick at scale isn't checking everything. It's getting two answers that fail in different ways and only looking where they disagree.
 
 ## Caveats
 
-Forty announcements is small. Most intervals are wide enough that I'm calling ties rather than ranking models. The answer key is mine. Where a release guides several metrics, I accept whichever metric the model picks, which lets a model sidestep a hard one; scoring strictly against one metric per announcement doesn't change the conclusions. Results are from the prompt I use in production, which isn't published. The public repo uses a simpler generic prompt, so its numbers will differ.
+Forty announcements is small, so read the intervals not just the averages. The answer key is mine. Results are from the prompt I use in production, which isn't published; the public repo uses a simpler generic prompt, so its numbers will differ.
 
-The harness, the 40 document IDs with my answer key, the generic prompt, the direction arithmetic and the per-attempt scores are on GitHub: [github.com/damonphilipross/guidance-eval](https://github.com/damonphilipross/guidance-eval). If you think one of my answers is wrong, tell me which page.
+The harness, the 40 document IDs with my answer key, the generic prompt, the direction arithmetic and every score are on GitHub: [github.com/damonphilipross/guidance-eval](https://github.com/damonphilipross/guidance-eval). If you think one of my answers is wrong, tell me which page.
 
 <style>
 .asx-chart{position:relative;width:100%;margin:1.75rem 0}
