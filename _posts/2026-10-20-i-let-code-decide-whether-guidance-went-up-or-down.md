@@ -86,6 +86,8 @@ Which is the point. Neither answer should automatically overrule the other. Each
 
 GLM 5.3 Flash got every verdict and every old figure right for about 23 cents per thousand announcements. DeepSeek V4 Pro got the same score at 15 times the price.
 
+*Update, 26 Oct: which company hosts the model matters too. [Same model, different host, different answers](/2026/10/26/same-model-different-host/).*
+
 <div class="asx-chart" style="height:380px"><canvas id="chart-cost"></canvas></div>
 
 ## What I'm changing
