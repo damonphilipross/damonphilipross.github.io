@@ -4,7 +4,7 @@ title: "Same model, different host, different answers"
 date: 2026-10-26
 ---
 
-Last week I wrote that [the cheap model is fine](/2026/10/20/i-let-code-decide-whether-guidance-went-up-or-down/). GLM 5.3 Flash got every guidance verdict right for about 23 cents per thousand announcements, so it's what my ASX pipeline runs on.
+Last week I wrote that [the cheap model is fine](/2026/10/20/i-let-code-decide-whether-guidance-went-up-or-down/). GLM 5.3 Flash got every guidance verdict right for about 23 cents per thousand announcements, so it's what my [Capital Signal](https://capitalsignal.io) ASX pipeline runs on.
 
 What I didn't think about is that "GLM 5.3 Flash" isn't one thing.
 

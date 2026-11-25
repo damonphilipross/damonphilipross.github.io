@@ -18,6 +18,8 @@ Over the last decade, I've worked across the entire company lifecycle—from bei
 
 My interests gravitate toward economics, big messy data projects, and statistics. I’m particularly drawn to "punts" any ambitious, crazy ideas that aim to shake up how things work.
 
+Right now I'm building [Capital Signal](https://capitalsignal.io), a structured database, MCP server, and daily front page built from every ASX filing since 2018.
+
 I use this blog to share technical breakdowns of the projects I’m building. If you’re working on something interesting and need someone who can jump into the deep end of a complex problem, I’d love to hear from you.
 
 You can get in touch with me on <a href="https://www.linkedin.com/in/damon-ross-237b7b155/" target="_blank" rel="noopener">LinkedIn</a>, <a href="https://x.com/damindestress" target="_blank" rel="noopener">Twitter</a>, or <span class="email-display">{{ site.email | replace: "@", '<span style="display:none">null</span>@' }}</span>.

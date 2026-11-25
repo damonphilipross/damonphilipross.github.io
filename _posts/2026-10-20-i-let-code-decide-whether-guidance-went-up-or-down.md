@@ -4,7 +4,7 @@ title: "Checking LLM extraction at scale: get two answers, only look where they 
 date: 2026-10-20
 ---
 
-I've been running evals of different agents against each other on my ASX filings data (I wrote about that [last week](/2026/10/15/can-claude-do-asx-equity-research/)). During one of those runs Claude went back to the original filing and found a bug in my data. A childcare operator, Mayfield, had cut its EBITDA guidance from $4.7–5.3 million to $2.4–2.7 million, roughly in half, and my pipeline had it down as an upgrade.
+I've been running evals of different agents against each other on my [Capital Signal](https://capitalsignal.io) ASX filings data (I wrote about that [last week](/2026/10/15/can-claude-do-asx-equity-research/)). During one of those runs Claude went back to the original filing and found a bug in my data. A childcare operator, Mayfield, had cut its EBITDA guidance from $4.7–5.3 million to $2.4–2.7 million, roughly in half, and my pipeline had it down as an upgrade.
 
 The model had read every number correctly. It had also read the line saying the new figure was "an increase of 4% to 17%" on last year, and gone with that.
 
