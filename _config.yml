@@ -2,7 +2,11 @@
 title: Damon Ross
 description: Thoughts on tech, product, and building things.
 author: Damon Ross
+url: "https://damonphilipross.github.io"
 timezone: Pacific/Auckland
+
+plugins:
+  - jekyll-sitemap
 
 # Social links
 github_username: damonphilipross
